@@ -16,11 +16,27 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
+    signingConfigs {
+        release {
+            storeFile file("release.keystore")
+            storePassword "123456"
+            keyAlias "key0"
+            keyPassword "123456"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
@@ -51,4 +67,16 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+task createKeystore(type: Exec) {
+    workingDir project.projectDir
+    commandLine 'keytool', '-genkey', '-v', '-keystore', 'release.keystore', '-alias', 'key0', '-keyalg', 'RSA', '-keysize', '2048', '-validity', '10000', '-storepass', '123456', '-keypass', '123456', '-dname', 'CN=Tasbih App, OU=Tasbih, O=Tasbih, L=City, ST=State, C=US'
+    doFirst {
+        println "Generating keystore..."
+    }
+    // Only run if keystore doesn't exist to avoid overwriting/errors
+    onlyIf {
+        !file('release.keystore').exists()
+    }
 }
