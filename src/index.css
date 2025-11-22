@@ -1,0 +1,154 @@
+:root, [data-theme="light"] {
+  /* Fluent UI Color Palette - Refined for Microsoft Design */
+  --neutral-layer-1: #ffffff;
+  --neutral-layer-2: #f0f2f5; /* Slightly cooler gray for background */
+  --neutral-layer-card: #ffffff;
+  
+  --text-primary: #242424;
+  --text-secondary: #616161;
+  --text-disabled: #bdbdbd;
+
+  /* Microsoft Blue (approximate) */
+  --brand-primary: #0078d4;
+  --brand-hover: #106ebe;
+  --brand-pressed: #005a9e;
+  --brand-foreground: #ffffff;
+  --brand-light: #eff6fc;
+
+  --system-error: #d13438;
+  --system-success: #107c10;
+
+  /* Elevation / Shadows - Softer, more diffused */
+  --elevation-4: 0 2px 5px 0 rgba(0, 0, 0, 0.05), 0 0 1px 0 rgba(0,0,0,0.1);
+  --elevation-8: 0 4px 10px 0 rgba(0, 0, 0, 0.08), 0 0 1px 0 rgba(0,0,0,0.1);
+  --elevation-16: 0 8px 20px 0 rgba(0, 0, 0, 0.12);
+
+  /* Typography - Segoe UI is key */
+  --font-family-base: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  
+  /* Spacing */
+  --spacing-s: 4px;
+  --spacing-m: 8px;
+  --spacing-l: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+
+  /* Radius - Standard Microsoft radius is 4px or 8px usually */
+  --radius-s: 2px;
+  --radius-m: 4px;
+  --radius-l: 8px;
+  --radius-xl: 12px;
+}
+
+[data-theme="dark"] {
+  --neutral-layer-1: #202020;
+  --neutral-layer-2: #121212; /* Darker background */
+  --neutral-layer-card: #2b2b2b;
+
+  --text-primary: #ffffff;
+  --text-secondary: #d0d0d0;
+  --text-disabled: #5d5d5d;
+
+  --brand-primary: #479ef5; /* Lighter blue for dark mode */
+  --brand-hover: #4cc2ff;
+  --brand-pressed: #0078d4;
+  --brand-foreground: #000000;
+  --brand-light: #3b3b3b;
+  
+  --elevation-4: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+  --elevation-8: 0 4px 8px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Default media query as fallback if no data-theme is set, but we will set it */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --neutral-layer-1: #202020;
+    --neutral-layer-2: #121212;
+    --neutral-layer-card: #2b2b2b;
+
+    --text-primary: #ffffff;
+    --text-secondary: #d0d0d0;
+    --text-disabled: #5d5d5d;
+
+    --brand-primary: #479ef5;
+    --brand-hover: #4cc2ff;
+    --brand-pressed: #0078d4;
+    --brand-foreground: #000000;
+    --brand-light: #3b3b3b;
+    
+    --elevation-4: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+    --elevation-8: 0 4px 8px 0 rgba(0, 0, 0, 0.3);
+  }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  background-color: var(--neutral-layer-2);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent tap highlight color on mobile */
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* Ensure it's applied everywhere */
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Utility classes for Fluent Design */
+.fluent-card {
+  background-color: var(--neutral-layer-card);
+  border-radius: var(--radius-l);
+  box-shadow: var(--elevation-4);
+  padding: var(--spacing-l);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, background-color 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.05); /* Subtle border */
+}
+
+.fluent-card:hover {
+  box-shadow: var(--elevation-8);
+}
+
+.fluent-button {
+  background-color: var(--neutral-layer-card);
+  color: var(--text-primary);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: var(--radius-m);
+  padding: 6px 20px;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.1s;
+  box-shadow: var(--elevation-4);
+}
+
+.fluent-button:hover {
+  background-color: var(--neutral-layer-2);
+  border-color: rgba(0,0,0,0.2);
+}
+
+.fluent-button:active {
+  transform: scale(0.98);
+  background-color: rgba(0,0,0,0.05);
+}
+
+.fluent-button-primary {
+  background-color: var(--brand-primary);
+  color: var(--brand-foreground);
+  border: none;
+}
+
+.fluent-button-primary:hover {
+  background-color: var(--brand-hover);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.fluent-button-primary:active {
+  background-color: var(--brand-pressed);
+}
