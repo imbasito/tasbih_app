@@ -1,115 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;700&display=swap');
+
 :root, [data-theme="light"] {
-  /* Fluent UI Color Palette - Refined for Microsoft Design */
-  --neutral-layer-1: #ffffff;
-  --neutral-layer-2: #f0f2f5; /* Slightly cooler gray for background */
-  --neutral-layer-card: #ffffff;
-  
-  --text-primary: #242424;
-  --text-secondary: #616161;
+  /* Warm Background Palette */
+  --bg-primary: #F8F6F3;
+  --bg-card: rgba(255, 255, 255, 0.75);
+  --bg-surface: #F0EDE8;
+  --bg-glass: rgba(255, 255, 255, 0.45);
+  --bg-glass-strong: rgba(255, 255, 255, 0.65);
+  --bg-glass-border: rgba(255, 255, 255, 0.5);
+
+  /* Text */
+  --text-primary: #1A1A2E;
+  --text-secondary: #6B7280;
   --text-disabled: #bdbdbd;
 
-  /* Microsoft Blue (approximate) */
-  --brand-primary: #0078d4;
-  --brand-hover: #106ebe;
-  --brand-pressed: #005a9e;
-  --brand-foreground: #ffffff;
-  --brand-light: #eff6fc;
+  /* Accent - Emerald */
+  --accent-primary: #2D6A4F;
+  --accent-secondary: #40916C;
+  --accent-light: rgba(45, 106, 79, 0.1);
 
+  /* Gold */
+  --accent-gold: #D4A843;
+  --accent-gold-light: rgba(212, 168, 67, 0.12);
+
+  /* Teal */
+  --accent-teal: #0D9488;
+
+  /* System */
   --system-error: #d13438;
-  --system-success: #107c10;
+  --system-success: #2D6A4F;
 
-  /* Elevation / Shadows - Softer, more diffused */
-  --elevation-4: 0 2px 5px 0 rgba(0, 0, 0, 0.05), 0 0 1px 0 rgba(0,0,0,0.1);
-  --elevation-8: 0 4px 10px 0 rgba(0, 0, 0, 0.08), 0 0 1px 0 rgba(0,0,0,0.1);
-  --elevation-16: 0 8px 20px 0 rgba(0, 0, 0, 0.12);
+  /* Elevation Shadows */
+  --elevation-4: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 1px rgba(0,0,0,0.08);
+  --elevation-8: 0 4px 16px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0,0,0,0.08);
+  --elevation-16: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0,0,0,0.04);
 
-  /* Typography - Segoe UI is key */
-  --font-family-base: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  /* Typography */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-arabic: 'Amiri', 'Traditional Arabic', serif;
+  --font-family-counter: 'Outfit', 'Inter', sans-serif;
   
   /* Spacing */
-  --spacing-s: 4px;
-  --spacing-m: 8px;
+  --spacing-xs: 4px;
+  --spacing-s: 8px;
+  --spacing-m: 12px;
   --spacing-l: 16px;
   --spacing-xl: 24px;
   --spacing-xxl: 32px;
 
-  /* Radius - Standard Microsoft radius is 4px or 8px usually */
-  --radius-s: 2px;
-  --radius-m: 4px;
-  --radius-l: 8px;
-  --radius-xl: 12px;
+  /* Radius */
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Nav glow */
+  --nav-active-glow: 0 0 12px rgba(45, 106, 79, 0.3);
 }
 
 [data-theme="dark"] {
-  --neutral-layer-1: #202020;
-  --neutral-layer-2: #121212; /* Darker background */
-  --neutral-layer-card: #2b2b2b;
+  --bg-primary: #0F0F1A;
+  --bg-card: rgba(26, 26, 46, 0.75);
+  --bg-surface: #16213E;
+  --bg-glass: rgba(255, 255, 255, 0.06);
+  --bg-glass-strong: rgba(255, 255, 255, 0.1);
+  --bg-glass-border: rgba(255, 255, 255, 0.1);
 
-  --text-primary: #ffffff;
-  --text-secondary: #d0d0d0;
-  --text-disabled: #5d5d5d;
+  --text-primary: #E8E8ED;
+  --text-secondary: #9CA3AF;
+  --text-disabled: #4B5563;
 
-  --brand-primary: #479ef5; /* Lighter blue for dark mode */
-  --brand-hover: #4cc2ff;
-  --brand-pressed: #0078d4;
-  --brand-foreground: #000000;
-  --brand-light: #3b3b3b;
-  
-  --elevation-4: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
-  --elevation-8: 0 4px 8px 0 rgba(0, 0, 0, 0.3);
+  --accent-primary: #52B788;
+  --accent-secondary: #74C9A0;
+  --accent-light: rgba(82, 183, 136, 0.12);
+
+  --accent-gold: #F0C75E;
+  --accent-gold-light: rgba(240, 199, 94, 0.12);
+
+  --system-error: #EF4444;
+  --system-success: #52B788;
+
+  --elevation-4: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --elevation-8: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --elevation-16: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  --nav-active-glow: 0 0 12px rgba(82, 183, 136, 0.35);
 }
 
-/* Default media query as fallback if no data-theme is set, but we will set it */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --neutral-layer-1: #202020;
-    --neutral-layer-2: #121212;
-    --neutral-layer-card: #2b2b2b;
-
-    --text-primary: #ffffff;
-    --text-secondary: #d0d0d0;
-    --text-disabled: #5d5d5d;
-
-    --brand-primary: #479ef5;
-    --brand-hover: #4cc2ff;
-    --brand-pressed: #0078d4;
-    --brand-foreground: #000000;
-    --brand-light: #3b3b3b;
-    
-    --elevation-4: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
-    --elevation-8: 0 4px 8px 0 rgba(0, 0, 0, 0.3);
+    --bg-primary: #0F0F1A;
+    --bg-card: rgba(26, 26, 46, 0.75);
+    --bg-surface: #16213E;
+    --bg-glass: rgba(255, 255, 255, 0.06);
+    --bg-glass-strong: rgba(255, 255, 255, 0.1);
+    --bg-glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #E8E8ED;
+    --text-secondary: #9CA3AF;
+    --accent-primary: #52B788;
+    --accent-secondary: #74C9A0;
+    --accent-light: rgba(82, 183, 136, 0.12);
+    --accent-gold: #F0C75E;
+    --accent-gold-light: rgba(240, 199, 94, 0.12);
+    --system-success: #52B788;
+    --nav-active-glow: 0 0 12px rgba(82, 183, 136, 0.35);
   }
 }
 
+/* ─── Base Reset ─── */
 body {
   margin: 0;
   font-family: var(--font-family-base);
-  background-color: var(--neutral-layer-2);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent tap highlight color on mobile */
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.4s ease, color 0.3s ease;
 }
 
 * {
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Ensure it's applied everywhere */
+  -webkit-tap-highlight-color: transparent;
 }
 
 button {
   font-family: inherit;
 }
 
-/* Utility classes for Fluent Design */
-.fluent-card {
-  background-color: var(--neutral-layer-card);
+/* ─── Glassmorphism Utilities ─── */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-l);
+}
+
+.glass-strong {
+  background: var(--bg-glass-strong);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-l);
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--bg-glass-border);
   border-radius: var(--radius-l);
   box-shadow: var(--elevation-4);
   padding: var(--spacing-l);
-  transition: box-shadow 0.2s ease, transform 0.2s ease, background-color 0.3s ease;
-  border: 1px solid rgba(0,0,0,0.05); /* Subtle border */
+  transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.3s ease;
+}
+
+.glass-card:hover {
+  box-shadow: var(--elevation-8);
+}
+
+/* ─── Button Utilities ─── */
+.btn-glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--bg-glass-border);
+  color: var(--text-primary);
+  border-radius: var(--radius-m);
+  padding: 8px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-glass:hover {
+  background: var(--bg-glass-strong);
+}
+
+.btn-glass:active {
+  transform: scale(0.97);
+}
+
+.btn-accent {
+  background-color: var(--accent-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-m);
+  padding: 10px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(45, 106, 79, 0.25);
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-secondary);
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+}
+
+.btn-accent:active {
+  transform: scale(0.97);
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 168, 67, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(212, 168, 67, 0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ─── Scrollbar Styling ─── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-glass-border);
+  border-radius: 4px;
+}
+
+/* ─── Legacy compat (for components still using old vars) ─── */
+.fluent-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-l);
+  box-shadow: var(--elevation-4);
+  padding: var(--spacing-l);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .fluent-card:hover {
@@ -117,38 +264,37 @@ button {
 }
 
 .fluent-button {
-  background-color: var(--neutral-layer-card);
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--text-primary);
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid var(--bg-glass-border);
   border-radius: var(--radius-m);
   padding: 6px 20px;
-  font-weight: var(--font-weight-semibold);
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.1s;
-  box-shadow: var(--elevation-4);
+  transition: all 0.15s ease;
 }
 
 .fluent-button:hover {
-  background-color: var(--neutral-layer-2);
-  border-color: rgba(0,0,0,0.2);
+  background: var(--bg-glass-strong);
 }
 
 .fluent-button:active {
-  transform: scale(0.98);
-  background-color: rgba(0,0,0,0.05);
+  transform: scale(0.97);
 }
 
 .fluent-button-primary {
-  background-color: var(--brand-primary);
-  color: var(--brand-foreground);
+  background-color: var(--accent-primary);
+  color: #fff;
   border: none;
 }
 
 .fluent-button-primary:hover {
-  background-color: var(--brand-hover);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  background-color: var(--accent-secondary);
 }
 
 .fluent-button-primary:active {
-  background-color: var(--brand-pressed);
+  background-color: var(--accent-primary);
+  transform: scale(0.97);
 }

@@ -1,148 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Check, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Check, GripVertical, ArrowUp, ArrowDown, ChevronDown } from 'lucide-react';
 
 const AdhkarList = ({ onSelect, adhkarData, setAdhkarData, initialCategory }) => {
-    const [isAdding, setIsAdding] = useState(false);
-    const [editingId, setEditingId] = useState(null);
-    const [newDhikr, setNewDhikr] = useState({ text: '', count: 33, translation: '', category: 'general' });
-    const [customCategoryInput, setCustomCategoryInput] = useState('');
-    
-    const [activeTab, setActiveTab] = useState(initialCategory || 'general');
-    
-    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-    
-    // Context Menu State for Category
-    const [categoryMenu, setCategoryMenu] = useState({ open: false, x: 0, y: 0, category: null });
-    const [renameCategoryInput, setRenameCategoryInput] = useState('');
-    const [isRenamingCategory, setIsRenamingCategory] = useState(false);
-
-    useEffect(() => {
-        if (initialCategory && adhkarData[initialCategory]) {
-            setActiveTab(initialCategory);
-        }
-    }, [initialCategory, adhkarData]);
-
-    // Close category menu when clicking elsewhere
-    useEffect(() => {
-        const closeMenu = () => setCategoryMenu({ open: false, x: 0, y: 0, category: null });
-        window.addEventListener('click', closeMenu);
-        return () => window.removeEventListener('click', closeMenu);
-    }, []);
-
-    const handleSaveDhikr = () => {
-        if (!newDhikr.text.trim()) return;
-
-        let finalCategory = newDhikr.category;
-        if (finalCategory === 'custom' && customCategoryInput.trim()) {
-            finalCategory = customCategoryInput.trim().toLowerCase();
-        } else if (finalCategory === 'custom') {
-            finalCategory = 'general';
-        }
-
-        if (editingId) {
-            setAdhkarData(prev => {
-                const newData = { ...prev };
-                // We need to find which category the item WAS in to remove it correctly if category changed
-                // But here we are iterating all categories. 
-                // Let's simplify: Remove from all categories, add to finalCategory.
-                Object.keys(newData).forEach(cat => {
-                    const idx = newData[cat].findIndex(item => item.id === editingId);
-                    if (idx !== -1) {
-                        newData[cat].splice(idx, 1);
-                    }
-                });
-
-                const updatedItem = {
-                    id: editingId,
-                    ...newDhikr,
-                    category: finalCategory,
-                    count: parseInt(newDhikr.count) || 33
-                };
-                // Ensure array exists
-                if (!newData[finalCategory]) newData[finalCategory] = [];
-                newData[finalCategory] = [updatedItem, ...newData[finalCategory]];
-                
-                return newData;
-            });
-        } else {
-            const newItem = {
-                id: Date.now(),
-                ...newDhikr,
-                category: finalCategory,
-                count: parseInt(newDhikr.count) || 33
-            };
-
-            setAdhkarData(prev => ({
-                ...prev,
-                [finalCategory]: [newItem, ...(prev[finalCategory] || [])]
-            }));
-        }
-
-        setIsAdding(false);
-        setEditingId(null);
-        setActiveTab(finalCategory);
-        setNewDhikr({ text: '', count: 33, translation: '', category: 'general' });
-        setCustomCategoryInput('');
-    };
-
-    const handleCategoryContextMenu = (e, category) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setCategoryMenu({
-            open: true,
-            x: e.clientX,
-            y: e.clientY,
-            category: category
-        });
-    };
-    
-    const handleRenameCategory = (e) => {
-        e.stopPropagation();
-        setRenameCategoryInput(categoryMenu.category);
-        setIsRenamingCategory(true);
-        setCategoryMenu(prev => ({ ...prev, open: false })); 
-    };
-
-    const saveCategoryRename = () => {
-        // Fix: Ensure input is valid and different
-        if (!renameCategoryInput.trim() || renameCategoryInput === categoryMenu.category) {
-            setIsRenamingCategory(false);
-            return;
-        }
-        
-        // Use the captured category name from when menu was opened, OR the one in state if menu closed
-        // Since we set renameCategoryInput from categoryMenu.category, we can assume `categoryMenu.category` is stale or null if closed?
-        // Actually `categoryMenu.category` might be cleared by the click listener. 
-        // We should store the target category in a separate state when 'Rename' is clicked, OR rely on `renameCategoryInput` being initialized correctly.
-        // Better: Store `targetCategoryForRename` state. 
-        // But here, let's use the value we initialized `renameCategoryInput` with? No, that's the input value.
-        // We need to know WHAT we are renaming. 
-        // The issue reported was "rename does not rename".
-        // It's likely because `categoryMenu.category` is null when this function runs (because menu closed).
-        
-        // Let's use a temp state for the target category
-        // Wait, I can just use a new state variable `categoryToRename` set in `handleRenameCategory`
-        // But for now, let's assume I fix it by tracking it.
-        // Actually, I see `categoryMenu` is cleared on window click.
-        // So I should capture the category name in `isRenamingCategory` or separate state.
-        
-        // I'll use `renameCategoryInput` as the NEW name, but I need the OLD name.
-        // I will add `editingCategoryKey` state.
-    };
-
-    // Let's rewrite the component to include `editingCategoryKey` to fix the bug.
-    // AND revert the list text styling.
-    
-    return <AdhkarListFixed 
-        onSelect={onSelect} 
-        adhkarData={adhkarData} 
-        setAdhkarData={setAdhkarData} 
-        initialCategory={initialCategory} 
+    return <AdhkarListFixed
+        onSelect={onSelect}
+        adhkarData={adhkarData}
+        setAdhkarData={setAdhkarData}
+        initialCategory={initialCategory}
     />;
 };
 
-// I will perform the full rewrite below in the actual file write.
-// This split is just for thinking.
 const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -150,11 +17,14 @@ const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory 
     const [customCategoryInput, setCustomCategoryInput] = useState('');
     const [activeTab, setActiveTab] = useState(initialCategory || 'general');
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-    
+
     const [categoryMenu, setCategoryMenu] = useState({ open: false, x: 0, y: 0, category: null });
     const [renameCategoryInput, setRenameCategoryInput] = useState('');
     const [isRenamingCategory, setIsRenamingCategory] = useState(false);
-    const [categoryToRename, setCategoryToRename] = useState(null); // Fixed: Store which category is being renamed
+    const [categoryToRename, setCategoryToRename] = useState(null);
+
+    // Category dropdown
+    const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
 
     useEffect(() => {
         if (initialCategory && adhkarData[initialCategory]) {
@@ -167,6 +37,11 @@ const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory 
         window.addEventListener('click', closeMenu);
         return () => window.removeEventListener('click', closeMenu);
     }, []);
+
+    const formatCategory = (cat) => {
+        if (!cat) return '';
+        return cat.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
 
     const handleSaveDhikr = () => {
         if (!newDhikr.text.trim()) return;
@@ -205,13 +80,13 @@ const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory 
         e.stopPropagation();
         setCategoryMenu({ open: true, x: e.clientX, y: e.clientY, category: category });
     };
-    
+
     const handleRenameCategory = (e) => {
         e.stopPropagation();
-        setCategoryToRename(categoryMenu.category); // Capture the category key
+        setCategoryToRename(categoryMenu.category);
         setRenameCategoryInput(categoryMenu.category);
         setIsRenamingCategory(true);
-        setCategoryMenu(prev => ({ ...prev, open: false })); 
+        setCategoryMenu(prev => ({ ...prev, open: false }));
     };
 
     const saveCategoryRename = () => {
@@ -219,7 +94,7 @@ const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory 
             setIsRenamingCategory(false);
             return;
         }
-        
+
         const oldKey = categoryToRename;
         const newKey = renameCategoryInput.trim().toLowerCase();
 
@@ -231,7 +106,7 @@ const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory 
             }
             return newData;
         });
-        
+
         setActiveTab(newKey);
         setIsRenamingCategory(false);
         setCategoryToRename(null);
@@ -239,13 +114,13 @@ const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory 
 
     const handleDeleteCategory = (e) => {
         e.stopPropagation();
-        if (window.confirm(`Are you sure you want to delete the category "${categoryMenu.category}" and all its Adhkar?`)) {
+        if (window.confirm(`Delete "${categoryMenu.category}" and all its Adhkar?`)) {
             setAdhkarData(prev => {
                 const newData = { ...prev };
                 delete newData[categoryMenu.category];
                 return newData;
             });
-            setActiveTab('general'); 
+            setActiveTab('general');
         }
         setCategoryMenu({ open: false, x: 0, y: 0, category: null });
     };
@@ -276,7 +151,7 @@ const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory 
         e.stopPropagation();
         setConfirmDeleteId(null);
     };
-    
+
     const moveItem = (index, direction, e) => {
         e.stopPropagation();
         setAdhkarData(prev => {
@@ -297,115 +172,370 @@ const AdhkarListFixed = ({ onSelect, adhkarData, setAdhkarData, initialCategory 
         setCustomCategoryInput('');
     };
 
-    const getActiveAdhkar = () => {
-        return adhkarData[activeTab] || [];
-    };
-
-    const adhkar = getActiveAdhkar();
+    const adhkar = adhkarData[activeTab] || [];
+    const allCats = Object.keys(adhkarData);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-m)' }}>
+            {/* Title + Add */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 'var(--font-weight-semibold)', margin: 0 }}>Select Dhikr</h2>
+                <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0, letterSpacing: '-0.02em' }}>Select Dhikr</h2>
                 {!isAdding && (
-                    <button onClick={() => { setIsAdding(true); setEditingId(null); setNewDhikr({ text: '', count: 33, translation: '', category: activeTab }); }} className="fluent-button" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px' }}>
-                        <Plus size={16} /> <span>Add Custom</span>
+                    <button onClick={() => { setIsAdding(true); setEditingId(null); setNewDhikr({ text: '', count: 33, translation: '', category: activeTab }); }}
+                        className="btn-glass"
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 14px', fontSize: '13px' }}
+                    >
+                        <Plus size={15} /> Add
                     </button>
                 )}
             </div>
 
+            {/* Category Dropdown */}
             {!isAdding && (
-                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', WebkitOverflowScrolling: 'touch' }}>
-                    {Object.keys(adhkarData).map(key => {
-                        const label = key.charAt(0).toUpperCase() + key.slice(1);
-                        const isActive = activeTab === key;
-                        return (
-                            <button key={key} onClick={() => setActiveTab(key)} onContextMenu={(e) => handleCategoryContextMenu(e, key)} style={{ padding: '6px 12px', borderRadius: '16px', border: isActive ? 'none' : '1px solid var(--neutral-layer-2)', backgroundColor: isActive ? 'var(--brand-primary)' : 'var(--neutral-layer-1)', color: isActive ? 'white' : 'var(--text-primary)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap', boxShadow: isActive ? 'var(--elevation-4)' : 'none', userSelect: 'none' }}>
-                                {label}
-                            </button>
-                        )
-                    })}
+                <div style={{ position: 'relative' }}>
+                    <button
+                        onClick={() => setIsCatDropdownOpen(!isCatDropdownOpen)}
+                        className="glass"
+                        style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '10px 14px',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            borderRadius: 'var(--radius-m)',
+                            border: isCatDropdownOpen ? '1px solid var(--accent-primary)' : '1px solid var(--bg-glass-border)',
+                            transition: 'all 0.2s ease',
+                            background: isCatDropdownOpen ? 'var(--bg-glass-strong)' : 'var(--bg-glass)',
+                        }}
+                    >
+                        <span style={{
+                            flex: 1,
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            color: 'var(--text-primary)',
+                        }}>
+                            {formatCategory(activeTab)}
+                        </span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            {adhkar.length} items
+                        </span>
+                        <ChevronDown size={18} color="var(--text-secondary)" style={{
+                            transform: isCatDropdownOpen ? 'rotate(180deg)' : 'none',
+                            transition: 'transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)',
+                        }} />
+                    </button>
+
+                    {isCatDropdownOpen && (
+                        <div className="glass-strong" style={{
+                            position: 'absolute',
+                            top: 'calc(100% + 4px)',
+                            left: 0,
+                            right: 0,
+                            borderRadius: 'var(--radius-m)',
+                            boxShadow: 'var(--elevation-16)',
+                            maxHeight: '40vh',
+                            overflowY: 'auto',
+                            zIndex: 1000,
+                            animation: 'fadeIn 0.15s cubic-bezier(0.32, 0.72, 0, 1)',
+                            padding: '4px',
+                        }}>
+                            {allCats.map(cat => {
+                                const isActive = cat === activeTab;
+                                const count = (adhkarData[cat] || []).length;
+                                return (
+                                    <button
+                                        key={cat}
+                                        onClick={() => { setActiveTab(cat); setIsCatDropdownOpen(false); }}
+                                        onContextMenu={(e) => handleCategoryContextMenu(e, cat)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            width: '100%',
+                                            textAlign: 'left',
+                                            padding: '12px',
+                                            borderRadius: 'var(--radius-s)',
+                                            backgroundColor: isActive ? 'var(--accent-light)' : 'transparent',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.15s',
+                                        }}
+                                        onMouseEnter={e => !isActive && (e.currentTarget.style.backgroundColor = 'var(--bg-glass)')}
+                                        onMouseLeave={e => !isActive && (e.currentTarget.style.backgroundColor = 'transparent')}
+                                    >
+                                        <span style={{
+                                            flex: 1,
+                                            fontSize: '14px',
+                                            fontWeight: isActive ? '600' : '500',
+                                            color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                                        }}>
+                                            {formatCategory(cat)}
+                                        </span>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{count}</span>
+                                        {isActive && <Check size={16} color="var(--accent-primary)" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             )}
 
+            {/* Rename Category Modal */}
             {isRenamingCategory && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ backgroundColor: 'var(--neutral-layer-card)', padding: '20px', borderRadius: '12px', width: '80%', maxWidth: '300px', boxShadow: 'var(--elevation-16)' }}>
-                        <h3 style={{ marginTop: 0, fontSize: '16px' }}>Rename Category</h3>
-                        <input autoFocus value={renameCategoryInput} onChange={e => setRenameCategoryInput(e.target.value)} style={{ width: '100%', padding: '8px', margin: '10px 0', borderRadius: '8px', border: '1px solid var(--neutral-layer-2)' }} />
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    backdropFilter: 'blur(12px)',
+                    zIndex: 2000,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                    <div className="glass-strong" style={{
+                        padding: '24px', borderRadius: 'var(--radius-l)',
+                        width: '80%', maxWidth: '300px',
+                        boxShadow: 'var(--elevation-16)',
+                        animation: 'scaleIn 0.2s',
+                    }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', fontWeight: '700' }}>Rename Category</h3>
+                        <input
+                            autoFocus
+                            value={renameCategoryInput}
+                            onChange={e => setRenameCategoryInput(e.target.value)}
+                            style={{
+                                width: '100%', padding: '10px', margin: '10px 0',
+                                borderRadius: 'var(--radius-s)',
+                                border: '1px solid var(--bg-glass-border)',
+                                background: 'var(--bg-glass)',
+                                color: 'var(--text-primary)',
+                                fontSize: '14px',
+                                fontFamily: 'inherit',
+                            }}
+                        />
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                            <button onClick={() => setIsRenamingCategory(false)} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}>Cancel</button>
-                            <button onClick={saveCategoryRename} className="fluent-button fluent-button-primary">Save</button>
+                            <button onClick={() => setIsRenamingCategory(false)} className="btn-glass" style={{ padding: '8px 16px', fontSize: '13px' }}>Cancel</button>
+                            <button onClick={saveCategoryRename} className="btn-accent" style={{ padding: '8px 16px', fontSize: '13px' }}>Save</button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Category Context Menu */}
             {categoryMenu.open && (
-                <div style={{ position: 'fixed', top: categoryMenu.y, left: categoryMenu.x, backgroundColor: 'var(--neutral-layer-card)', borderRadius: '8px', boxShadow: 'var(--elevation-16)', border: '1px solid var(--neutral-layer-2)', zIndex: 3000, minWidth: '150px', padding: '4px', animation: 'fadeIn 0.1s' }} onClick={e => e.stopPropagation()}>
-                    <button onClick={handleRenameCategory} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--text-primary)', borderRadius: '4px' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--neutral-layer-2)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>Rename</button>
-                    <button onClick={handleDeleteCategory} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--system-error)', borderRadius: '4px' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--neutral-layer-2)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>Delete</button>
+                <div className="glass-strong" style={{
+                    position: 'fixed',
+                    top: categoryMenu.y, left: categoryMenu.x,
+                    borderRadius: 'var(--radius-s)',
+                    boxShadow: 'var(--elevation-16)',
+                    zIndex: 3000,
+                    minWidth: '150px',
+                    padding: '4px',
+                    animation: 'fadeIn 0.1s',
+                }} onClick={e => e.stopPropagation()}>
+                    <button onClick={handleRenameCategory} style={{
+                        display: 'block', width: '100%', textAlign: 'left',
+                        padding: '10px 12px', background: 'transparent', border: 'none',
+                        cursor: 'pointer', fontSize: '14px', color: 'var(--text-primary)',
+                        borderRadius: '4px',
+                    }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-glass)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >Rename</button>
+                    <button onClick={handleDeleteCategory} style={{
+                        display: 'block', width: '100%', textAlign: 'left',
+                        padding: '10px 12px', background: 'transparent', border: 'none',
+                        cursor: 'pointer', fontSize: '14px', color: 'var(--system-error)',
+                        borderRadius: '4px',
+                    }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-glass)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >Delete</button>
                 </div>
             )}
 
+            {/* Add/Edit Form */}
             {isAdding && (
-                <div className="fluent-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', animation: 'fadeIn 0.2s' }}>
+                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', animation: 'fadeIn 0.2s' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                         <span style={{ fontSize: '14px', fontWeight: '600' }}>{editingId ? 'Edit Dhikr' : 'New Dhikr'}</span>
-                         <button onClick={handleCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}> <X size={18} color="var(--text-secondary)" /> </button>
+                        <span style={{ fontSize: '14px', fontWeight: '700' }}>{editingId ? 'Edit Dhikr' : 'New Dhikr'}</span>
+                        <button onClick={handleCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+                            <X size={18} color="var(--text-secondary)" />
+                        </button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <label style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>Category</label>
-                        <select value={newDhikr.category} onChange={(e) => { setNewDhikr({...newDhikr, category: e.target.value}); if (e.target.value !== 'custom') setCustomCategoryInput(''); }} style={{ padding: '8px', borderRadius: 'var(--radius-m)', border: '1px solid var(--neutral-layer-2)', fontFamily: 'inherit', fontSize: '14px', backgroundColor: '#ffffff', color: '#000000' }}>
-                            {Object.keys(adhkarData).map(key => ( <option key={key} value={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</option> ))}
+                        <select value={newDhikr.category} onChange={(e) => { setNewDhikr({ ...newDhikr, category: e.target.value }); if (e.target.value !== 'custom') setCustomCategoryInput(''); }}
+                            style={{
+                                padding: '10px', borderRadius: 'var(--radius-s)',
+                                border: '1px solid var(--bg-glass-border)',
+                                fontFamily: 'inherit', fontSize: '14px',
+                                backgroundColor: 'var(--bg-glass)', color: 'var(--text-primary)',
+                            }}
+                        >
+                            {Object.keys(adhkarData).map(key => (
+                                <option key={key} value={key}>{formatCategory(key)}</option>
+                            ))}
                             <option value="custom">Create New Category...</option>
                         </select>
-                        {newDhikr.category === 'custom' && ( <input type="text" placeholder="Enter category name" value={customCategoryInput} onChange={(e) => setCustomCategoryInput(e.target.value)} style={{ marginTop: '4px', padding: '8px', borderRadius: 'var(--radius-m)', border: '1px solid var(--neutral-layer-2)' }} /> )}
+                        {newDhikr.category === 'custom' && (
+                            <input type="text" placeholder="Enter category name" value={customCategoryInput}
+                                onChange={(e) => setCustomCategoryInput(e.target.value)}
+                                style={{
+                                    marginTop: '4px', padding: '10px', borderRadius: 'var(--radius-s)',
+                                    border: '1px solid var(--bg-glass-border)', background: 'var(--bg-glass)',
+                                    color: 'var(--text-primary)', fontFamily: 'inherit',
+                                }}
+                            />
+                        )}
                     </div>
-                    <input type="text" placeholder="Dhikr Text (Arabic preferred)" value={newDhikr.text} onChange={(e) => setNewDhikr({...newDhikr, text: e.target.value})} style={{ padding: '10px', borderRadius: 'var(--radius-m)', border: '1px solid var(--neutral-layer-2)' }} />
-                    <input type="text" placeholder="Translation (optional)" value={newDhikr.translation} onChange={(e) => setNewDhikr({...newDhikr, translation: e.target.value})} style={{ padding: '10px', borderRadius: 'var(--radius-m)', border: '1px solid var(--neutral-layer-2)' }} />
+                    <input type="text" placeholder="Dhikr Text (Arabic preferred)" value={newDhikr.text}
+                        onChange={(e) => setNewDhikr({ ...newDhikr, text: e.target.value })}
+                        style={{
+                            padding: '10px', borderRadius: 'var(--radius-s)',
+                            border: '1px solid var(--bg-glass-border)', background: 'var(--bg-glass)',
+                            color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '14px',
+                        }}
+                    />
+                    <input type="text" placeholder="Translation (optional)" value={newDhikr.translation}
+                        onChange={(e) => setNewDhikr({ ...newDhikr, translation: e.target.value })}
+                        style={{
+                            padding: '10px', borderRadius: 'var(--radius-s)',
+                            border: '1px solid var(--bg-glass-border)', background: 'var(--bg-glass)',
+                            color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '14px',
+                        }}
+                    />
                     <div style={{ display: 'flex', gap: '8px' }}>
-                        <input type="number" placeholder="Count" value={newDhikr.count} onChange={(e) => setNewDhikr({...newDhikr, count: e.target.value})} style={{ padding: '10px', borderRadius: 'var(--radius-m)', border: '1px solid var(--neutral-layer-2)', width: '80px' }} />
-                        <button className="fluent-button fluent-button-primary" onClick={handleSaveDhikr} style={{ flex: 1 }}> {editingId ? 'Update Dhikr' : 'Save Dhikr'} </button>
+                        <input type="number" placeholder="Count" value={newDhikr.count}
+                            onChange={(e) => setNewDhikr({ ...newDhikr, count: e.target.value })}
+                            style={{
+                                padding: '10px', borderRadius: 'var(--radius-s)',
+                                border: '1px solid var(--bg-glass-border)',
+                                width: '80px', background: 'var(--bg-glass)',
+                                color: 'var(--text-primary)', fontFamily: 'inherit',
+                            }}
+                        />
+                        <button className="btn-accent" onClick={handleSaveDhikr} style={{ flex: 1, fontSize: '14px' }}>
+                            {editingId ? 'Update' : 'Save'}
+                        </button>
                     </div>
                 </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-m)', maxHeight: '65vh', overflowY: 'auto' }}>
+            {/* Adhkar List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '60vh', overflowY: 'auto' }}>
                 {adhkar.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>No Dhikr in this category</div>
+                    <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                        No Dhikr in this category
+                    </div>
                 ) : adhkar.map((item, index) => (
-                    <div key={item.id} className="fluent-card" onClick={() => onSelect && onSelect(item)} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', border: '1px solid transparent', transition: 'border-color 0.2s', position: 'relative', paddingRight: '12px', paddingLeft: '8px' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--brand-primary)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: '12px', color: 'var(--text-secondary)' }}>
-                             {index > 0 && ( <div onClick={(e) => moveItem(index, 'up', e)} style={{ padding: '2px', cursor: 'pointer' }}> <ArrowUp size={12} /> </div> )}
-                             <GripVertical size={16} style={{ opacity: 0.5, margin: '2px 0' }} />
-                             {index < adhkar.length - 1 && ( <div onClick={(e) => moveItem(index, 'down', e)} style={{ padding: '2px', cursor: 'pointer' }}> <ArrowDown size={12} /> </div> )}
+                    <div key={item.id}
+                        className="glass-card"
+                        onClick={() => onSelect && onSelect(item)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            paddingRight: '12px',
+                            paddingLeft: '8px',
+                            transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--bg-glass-border)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                    >
+                        {/* Reorder Controls */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: '10px', color: 'var(--text-secondary)' }}>
+                            {index > 0 && (
+                                <div onClick={(e) => moveItem(index, 'up', e)} style={{ padding: '2px', cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = 1}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = 0.5}
+                                >
+                                    <ArrowUp size={12} />
+                                </div>
+                            )}
+                            <GripVertical size={14} style={{ opacity: 0.3, margin: '1px 0' }} />
+                            {index < adhkar.length - 1 && (
+                                <div onClick={(e) => moveItem(index, 'down', e)} style={{ padding: '2px', cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = 1}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = 0.5}
+                                >
+                                    <ArrowDown size={12} />
+                                </div>
+                            )}
                         </div>
+
+                        {/* Text */}
                         <div style={{ flex: 1 }}>
-                            {/* REVERTED: Removed whiteSpace: nowrap to allow wrapping as requested ("revert... back to how it was before") */}
-                            <div style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: '18px', fontFamily: '"Segoe UI", "Traditional Arabic", sans-serif', lineHeight: '1.4' }}>
+                            <div style={{
+                                fontWeight: '600',
+                                fontSize: '17px',
+                                fontFamily: 'var(--font-family-arabic)',
+                                lineHeight: '1.5',
+                                color: 'var(--text-primary)',
+                            }}>
                                 {item.text}
                             </div>
-                            {item.translation && ( <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}> {item.translation} </div> )}
+                            {item.translation && (
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: '1.3' }}>
+                                    {item.translation}
+                                </div>
+                            )}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', marginLeft: '12px', minWidth: 'auto' }}>
-                             <div style={{ backgroundColor: 'var(--neutral-layer-2)', padding: '4px 12px', borderRadius: '12px', fontSize: '14px', fontWeight: 'var(--font-weight-bold)', color: 'var(--brand-primary)', textAlign: 'center', width: '100%' }}> {item.count}x </div>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', marginLeft: '12px' }}>
+                            <div style={{
+                                backgroundColor: 'var(--accent-light)',
+                                padding: '4px 10px',
+                                borderRadius: 'var(--radius-pill)',
+                                fontSize: '13px',
+                                fontWeight: '700',
+                                color: 'var(--accent-primary)',
+                                textAlign: 'center',
+                            }}>
+                                {item.count}×
+                            </div>
                             {confirmDeleteId === item.id ? (
-                                <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--neutral-layer-card)', borderRadius: '12px', boxShadow: 'var(--elevation-4)', padding: '2px', zIndex: 10 }} onClick={e => e.stopPropagation()}>
-                                    <button onClick={(e) => confirmDelete(item.id, e)} style={{ background: 'var(--system-error)', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', color: 'white' }}> <Check size={14} /> </button>
-                                    <button onClick={cancelDelete} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', color: 'var(--text-primary)' }}> <X size={14} /> </button>
+                                <div className="glass" style={{ display: 'flex', gap: '4px', borderRadius: 'var(--radius-s)', padding: '2px', zIndex: 10 }}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    <button onClick={(e) => confirmDelete(item.id, e)} style={{
+                                        background: 'var(--system-error)', border: 'none', cursor: 'pointer',
+                                        padding: '4px 8px', borderRadius: '6px', color: 'white',
+                                    }}><Check size={14} /></button>
+                                    <button onClick={cancelDelete} style={{
+                                        background: 'transparent', border: 'none', cursor: 'pointer',
+                                        padding: '4px 8px', borderRadius: '6px', color: 'var(--text-primary)',
+                                    }}><X size={14} /></button>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button onClick={(e) => handleEdit(item, e)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--text-secondary)' }} title="Edit"> <Edit2 size={16} /> </button>
-                                    <button onClick={(e) => handleDeleteClick(item.id, e)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--system-error)' }} title="Delete"> <Trash2 size={16} /> </button>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                    <button onClick={(e) => handleEdit(item, e)} style={{
+                                        background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                                        color: 'var(--text-secondary)', transition: 'color 0.2s',
+                                    }} title="Edit"
+                                        onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-primary)'}
+                                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                                    ><Edit2 size={15} /></button>
+                                    <button onClick={(e) => handleDeleteClick(item.id, e)} style={{
+                                        background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                                        color: 'var(--text-secondary)', transition: 'color 0.2s',
+                                    }} title="Delete"
+                                        onMouseEnter={e => e.currentTarget.style.color = 'var(--system-error)'}
+                                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                                    ><Trash2 size={15} /></button>
                                 </div>
                             )}
                         </div>
                     </div>
                 ))}
             </div>
-             <style>{` @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } } `}</style>
         </div>
     );
 };

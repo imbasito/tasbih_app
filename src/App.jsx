@@ -3,9 +3,9 @@ import Layout from './components/Layout';
 import TasbihCounter from './components/TasbihCounter';
 import AdhkarList from './components/AdhkarList';
 import BottomNav from './components/BottomNav';
-import { Check } from 'lucide-react'; // Import Icon
+import PrayerTimesView from './components/PrayerTimesView';
 
-// New, professionally structured Adhkar list
+// Adhkar data
 const INITIAL_ADHKAR_DATA = {
     morning: [
         { id: 3, text: "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ... (آية الكرسي)", count: 1, translation: "Ayat al-Kursi" },
@@ -34,12 +34,12 @@ const INITIAL_ADHKAR_DATA = {
         { id: 17, text: "الْحَمْدُ لِلَّهِ", count: 33, translation: "Praise be to Allah" },
         { id: 18, text: "اللَّهُ أَكْبَرُ", count: 33, translation: "Allah is the Greatest" },
         { id: 19, text: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ... (تكملة المئة)", count: 1, translation: "There is no god but Allah alone... (to complete 100)" },
-        { id: 32, text: "آية الكرسي بعد كل صلاة", count: 1, translation: "Ayat al-Kursi (after every prayer)"},
+        { id: 32, text: "آية الكرسي بعد كل صلاة", count: 1, translation: "Ayat al-Kursi (after every prayer)" },
     ],
     quran: [
         { id: 28, text: "آمَنَ الرَّسُولُ... (آخر آيتين من سورة البقرة)", count: 1, translation: "Last two verses of Surah Al-Baqarah (recite at night)" },
-        { id: 33, text: "سورة الملك", count: 1, translation: "Surah Al-Mulk (recite before sleeping)"},
-        { id: 34, text: "سورة الكهف", count: 1, translation: "Surah Al-Kahf (recite on Friday)"},
+        { id: 33, text: "سورة الملك", count: 1, translation: "Surah Al-Mulk (recite before sleeping)" },
+        { id: 34, text: "سورة الكهف", count: 1, translation: "Surah Al-Kahf (recite on Friday)" },
     ],
     general: [
         { id: 9, text: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ", count: 100, translation: "Glory is to Allah and praise is to Him, Glory is to Allah the Great" },
@@ -56,15 +56,14 @@ const CATEGORY_PROGRESS_KEY = 'tasbih_category_progress';
 
 function App() {
     const [currentView, setCurrentView] = useState('counter');
-    // Added showAameen state to handle the transition to Aameen display
-    const [completionState, setCompletionState] = useState({ open: false, category: '', showAameen: false });
-    
+    const [completionState, setCompletionState] = useState({ showAameen: false });
+
     const [adhkarData, setAdhkarData] = useState(() => {
         const saved = localStorage.getItem(ADHKAR_STORAGE_KEY);
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                if(Object.keys(parsed).length > 0) return parsed;
+                if (Object.keys(parsed).length > 0) return parsed;
             } catch (e) {
                 return INITIAL_ADHKAR_DATA;
             }
@@ -87,12 +86,12 @@ function App() {
             try {
                 const parsed = JSON.parse(saved);
                 if (parsed && parsed.id && parsed.text) {
-                    if (!parsed.category) parsed.category = 'general'; 
+                    if (!parsed.category) parsed.category = 'general';
                     return parsed;
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
-        return { id: 9, text: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ", count: 100, category: 'general' }; 
+        return { id: 9, text: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ", count: 100, category: 'general' };
     });
 
     useEffect(() => {
@@ -112,12 +111,12 @@ function App() {
     }, [activeDhikr]);
 
     const handleCategorySelect = (category) => {
-        setCompletionState({ open: false, category: '', showAameen: false }); // Reset completion state on change
+        setCompletionState({ showAameen: false });
         const lastActiveId = categoryProgress[category];
         const categoryList = adhkarData[category] || [];
-        
+
         let nextDhikr = categoryList.find(item => item.id === lastActiveId);
-        
+
         if (!nextDhikr && categoryList.length > 0) {
             nextDhikr = categoryList[0];
         }
@@ -129,12 +128,13 @@ function App() {
     };
 
     const handleDhikrSelect = (dhikrObject) => {
-        setCompletionState({ open: false, category: '', showAameen: false });
+        setCompletionState({ showAameen: false });
         localStorage.removeItem(`tasbih_count_${dhikrObject.id}`);
         setActiveDhikr(dhikrObject);
         setCurrentView('counter');
     };
-    
+
+    // When a single dhikr count completes: auto-advance to NEXT dhikr in same category
     const handleDhikrComplete = () => {
         const category = activeDhikr.category;
         if (!category || !adhkarData[category]) return;
@@ -143,71 +143,83 @@ function App() {
         const currentIndex = currentList.findIndex(item => item.id === activeDhikr.id);
 
         if (currentIndex !== -1 && currentIndex < currentList.length - 1) {
+            // More dhikr in this category — advance to next
             const nextDhikr = currentList[currentIndex + 1];
             localStorage.removeItem(`tasbih_count_${nextDhikr.id}`);
             setActiveDhikr({ ...nextDhikr, category });
         } else {
-            // List finished - Show Aameen on Counter
-            setCompletionState({ 
-                open: false, 
-                category: category.charAt(0).toUpperCase() + category.slice(1),
-                showAameen: true // This will be passed to TasbihCounter to show "Aameen"
-            });
+            // ALL dhikr in this category are done — show Aameen
+            setCompletionState({ showAameen: true });
         }
     };
 
+    // Reset = restart category from first dhikr
     const handleSubcategoryReset = () => {
-         const category = activeDhikr.category;
+        const category = activeDhikr.category;
         if (!category || !adhkarData[category]) return;
-        
-        const firstDhikr = adhkarData[category][0];
+
+        const categoryList = adhkarData[category];
+        // Clear all counts for this category
+        categoryList.forEach(item => {
+            localStorage.removeItem(`tasbih_count_${item.id}`);
+        });
+
+        const firstDhikr = categoryList[0];
         if (firstDhikr) {
-             localStorage.removeItem(`tasbih_count_${firstDhikr.id}`);
-             setActiveDhikr({ ...firstDhikr, category });
-             setCategoryProgress(prev => ({
-                 ...prev,
-                 [category]: firstDhikr.id
-             }));
-             setCompletionState({ open: false, category: '', showAameen: false });
+            setActiveDhikr({ ...firstDhikr, category });
+            setCategoryProgress(prev => ({
+                ...prev,
+                [category]: firstDhikr.id
+            }));
         }
+        setCompletionState({ showAameen: false });
     };
 
-  return (
-    <Layout>
-      <BottomNav currentView={currentView} onViewChange={setCurrentView} />
+    // Check if current dhikr is last in its category
+    const isLastInCategory = (() => {
+        const category = activeDhikr.category;
+        if (!category || !adhkarData[category]) return true;
+        const list = adhkarData[category];
+        const idx = list.findIndex(item => item.id === activeDhikr.id);
+        return idx === list.length - 1;
+    })();
 
-      <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
-        {currentView === 'counter' && (
-          <TasbihCounter
-            key={activeDhikr.id} 
-            activeDhikr={activeDhikr}
-            adhkarData={adhkarData}
-            onSelectCategory={handleCategorySelect} 
-            onComplete={handleDhikrComplete}
-            onResetCategory={handleSubcategoryReset}
-            showAameen={completionState.showAameen} // Pass this prop
-          />
-        )}
+    return (
+        <Layout>
+            <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                {currentView === 'counter' && (
+                    <TasbihCounter
+                        key={activeDhikr.id + (completionState.showAameen ? '-aameen' : '')}
+                        activeDhikr={activeDhikr}
+                        adhkarData={adhkarData}
+                        onSelectCategory={handleCategorySelect}
+                        onComplete={handleDhikrComplete}
+                        onResetCategory={handleSubcategoryReset}
+                        showAameen={completionState.showAameen}
+                        isLastInCategory={isLastInCategory}
+                    />
+                )}
 
-        {currentView === 'adhkar' && (
-          <AdhkarList 
-            adhkarData={adhkarData}
-            setAdhkarData={setAdhkarData}
-            onSelect={handleDhikrSelect}
-            initialCategory={activeDhikr.category} 
-          />
-        )}
-        
-        {/* Kept the modal logic just in case, but main request is Aameen on counter. 
-            If user wants popup AND text, we can do both. 
-            "upon completion... it should pop up... AND counter should show a text Aameen"
-            Wait, the prompt says: "finally after completing the subcategory dhikar, the counter should show a text Aameen in arabic and upon click it resets the subcategory."
-            It contradicts the previous "small pop up with ok button" request a bit or adds to it. 
-            I will prioritize the Aameen display on the counter as the primary "end state" interaction.
-        */}
-      </div>
-    </Layout>
-  );
+                {currentView === 'adhkar' && (
+                    <AdhkarList
+                        adhkarData={adhkarData}
+                        setAdhkarData={setAdhkarData}
+                        onSelect={handleDhikrSelect}
+                        initialCategory={activeDhikr.category}
+                    />
+                )}
+
+                {currentView === 'settings' && (
+                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>Settings</h2>
+                        <p style={{ fontSize: '14px' }}>Coming soon — Prayer Times, Notifications & more</p>
+                    </div>
+                )}
+            </div>
+
+            <BottomNav currentView={currentView} onViewChange={setCurrentView} />
+        </Layout>
+    );
 }
 
 export default App;
