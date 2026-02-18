@@ -1,55 +1,60 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 
-// The hook now accepts a unique ID for each dhikr to store counts separately.
-export const useTasbih = (dhikrId, initialCount = 0, targetCount = null) => {
-    const STORAGE_KEY = `tasbih_count_${dhikrId}`; // Dynamic key based on Dhikr ID
+const hapticsAvailable = Capacitor.isNativePlatform();
+
+export function useTasbih(dhikrId, initialCount = 0, targetCount = 33, onComplete, recordCount) {
+    const storageKey = `tasbih_count_${dhikrId}`;
 
     const [count, setCount] = useState(() => {
-        // If no specific dhikrId is provided, don't use storage.
-        if (!dhikrId) return initialCount;
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved !== null ? parseInt(saved, 10) : initialCount;
+        const saved = localStorage.getItem(storageKey);
+        return saved ? parseInt(saved, 10) : initialCount;
     });
 
+    const completedRef = useRef(false);
+
     useEffect(() => {
-        // Only save to localStorage if there is a dhikrId.
-        if (dhikrId) {
-            localStorage.setItem(STORAGE_KEY, count.toString());
-        }
-    }, [count, dhikrId, STORAGE_KEY]);
-
-    const triggerHaptic = (isTargetReached) => {
-        if (navigator.vibrate) {
-            try {
-               if (isTargetReached) {
-                   // Long vibration for target reached
-                   navigator.vibrate([100, 50, 100, 50, 200]); 
-               } else {
-                   // Standard short tick
-                   navigator.vibrate(40); 
-               }
-            } catch(e) {
-                console.error("Vibration failed", e);
-            }
-        }
-    };
-
-    const increment = () => {
-        setCount(prev => {
-            const newCount = prev + 1;
-            // Check if we hit the target exactly
-            const isTargetReached = targetCount && newCount === targetCount;
-            triggerHaptic(isTargetReached);
-            return newCount;
+        setCount(() => {
+            const saved = localStorage.getItem(storageKey);
+            return saved ? parseInt(saved, 10) : initialCount;
         });
-    };
+        completedRef.current = false;
+    }, [dhikrId]);
 
-    const reset = () => {
-        setCount(0);
-        if (navigator.vibrate) {
-            navigator.vibrate([50, 50, 50]); // Distinct pattern for reset
+    useEffect(() => {
+        localStorage.setItem(storageKey, String(count));
+
+        if (count >= targetCount && !completedRef.current) {
+            completedRef.current = true;
+            setTimeout(() => {
+                onComplete && onComplete();
+            }, 200);
         }
-    };
+    }, [count, targetCount, storageKey]);
 
-    return { count, increment, reset };
-};
+    const increment = useCallback(() => {
+        if (completedRef.current) return;
+
+        setCount(prev => {
+            const next = prev + 1;
+            // Haptic feedback
+            if (hapticsAvailable) {
+                Haptics.impact({ style: ImpactStyle.Light }).catch(() => { });
+            }
+            // Record for stats
+            recordCount && recordCount(1);
+            return next;
+        });
+    }, [recordCount]);
+
+    const reset = useCallback(() => {
+        completedRef.current = false;
+        setCount(0);
+        localStorage.setItem(storageKey, '0');
+    }, [storageKey]);
+
+    const progress = Math.min(count / targetCount, 1);
+
+    return { count, increment, reset, progress, isComplete: count >= targetCount };
+}

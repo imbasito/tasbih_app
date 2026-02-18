@@ -1,87 +1,168 @@
-import { useState, useEffect } from 'react';
-import { Coordinates, CalculationMethod, PrayerTimes } from 'adhan';
+import { useState, useEffect, useCallback } from 'react';
+import { PrayerTimes, Coordinates, CalculationMethod, Madhab } from 'adhan';
 
-export const usePrayerTimes = () => {
-    const [prayerTimes, setPrayerTimes] = useState(null);
+const CACHE_KEY = 'tasbih_prayer_times_cache';
+const MANUAL_KEY = 'tasbih_prayer_manual_location';
+
+// Default fallback: Karachi
+const DEFAULT_LOCATION = { lat: 24.8607, lng: 67.0011, city: 'Karachi (Default)' };
+
+const getCityName = async (lat, lng) => {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        return data.address?.city || data.address?.town || data.address?.village || data.address?.county || null;
+    } catch { return null; }
+};
+
+export function usePrayerTimes() {
+    const [times, setTimes] = useState(null);
     const [nextPrayer, setNextPrayer] = useState(null);
+    const [countdown, setCountdown] = useState(null);
     const [location, setLocation] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isManual, setIsManual] = useState(false);
 
-    useEffect(() => {
-        // Try to load last known location
-        const savedLocation = localStorage.getItem('lastKnownLocation');
-        if (savedLocation) {
-            try {
-                setLocation(JSON.parse(savedLocation));
-            } catch (e) {
-                console.error('Failed to parse saved location', e);
-            }
+    const calculateTimes = useCallback(async (lat, lng, cityOverride) => {
+        try {
+            const coords = new Coordinates(lat, lng);
+            const params = CalculationMethod.MuslimWorldLeague();
+            params.madhab = Madhab.Hanafi;
+
+            const date = new Date();
+            const pt = new PrayerTimes(coords, date, params);
+
+            const timesObj = {
+                fajr: pt.fajr,
+                dhuhr: pt.dhuhr,
+                asr: pt.asr,
+                maghrib: pt.maghrib,
+                isha: pt.isha,
+            };
+
+            setTimes(timesObj);
+
+            // Cache
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                lat, lng,
+                date: date.toDateString(),
+                times: Object.fromEntries(Object.entries(timesObj).map(([k, v]) => [k, v.toISOString()])),
+            }));
+
+            // Get city name (if not overridden)
+            const city = cityOverride || await getCityName(lat, lng);
+            setLocation({ lat, lng, city });
+        } catch (e) {
+            setError('Failed to calculate prayer times: ' + e.message);
         }
+    }, []);
 
+    // Set a manual location by lat/lng (and optional city name)
+    const setManualLocation = useCallback(async (lat, lng, cityName) => {
+        setLoading(true);
+        setError(null);
+        setIsManual(true);
+        const city = cityName || await getCityName(lat, lng) || `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+        localStorage.setItem(MANUAL_KEY, JSON.stringify({ lat, lng, city }));
+        await calculateTimes(lat, lng, city);
+        setLoading(false);
+    }, [calculateTimes]);
+
+    // Clear manual location and go back to GPS
+    const clearManualLocation = useCallback(() => {
+        localStorage.removeItem(MANUAL_KEY);
+        setIsManual(false);
+        refresh();
+    }, []); // eslint-disable-line
+
+    const refresh = useCallback(() => {
+        setLoading(true);
+        setError(null);
+
+        // Check for saved manual location first
+        try {
+            const manual = JSON.parse(localStorage.getItem(MANUAL_KEY) || 'null');
+            if (manual) {
+                setIsManual(true);
+                calculateTimes(manual.lat, manual.lng, manual.city).then(() => setLoading(false));
+                return;
+            }
+        } catch { /* ignore */ }
+
+        // Try GPS
         if (!navigator.geolocation) {
-            setError('Geolocation is not supported by your browser');
+            // No GPS support — use cache or Karachi default
+            loadCacheOrDefault();
             return;
         }
 
-        // Relaxed options to prevent timeouts indoors
-        const options = {
-            enableHighAccuracy: false, // Changed to false for faster/more reliable lock indoors
-            timeout: 10000,            // Increased timeout to 10s
-            maximumAge: 60000          // Accept cached location up to 1 minute old
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                setIsManual(false);
+                await calculateTimes(pos.coords.latitude, pos.coords.longitude);
+                setLoading(false);
+            },
+            () => {
+                // GPS denied — try cache, then Karachi default
+                loadCacheOrDefault();
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }, [calculateTimes]);
+
+    const loadCacheOrDefault = useCallback(() => {
+        try {
+            const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+            if (cached) {
+                const restoredTimes = Object.fromEntries(
+                    Object.entries(cached.times).map(([k, v]) => [k, new Date(v)])
+                );
+                setTimes(restoredTimes);
+                setLocation({ lat: cached.lat, lng: cached.lng, city: cached.city || null });
+                setError('Using cached times. Enable GPS or set location manually.');
+            } else {
+                // Karachi default
+                calculateTimes(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng, DEFAULT_LOCATION.city).then(() => {
+                    setError('Location unavailable. Showing Karachi times. Set your location manually.');
+                });
+            }
+        } catch {
+            calculateTimes(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng, DEFAULT_LOCATION.city).then(() => {
+                setError('Location unavailable. Showing Karachi times.');
+            });
+        }
+        setLoading(false);
+    }, [calculateTimes]);
+
+    // Initial load
+    useEffect(() => { refresh(); }, []);
+
+    // Update next prayer + countdown every second
+    useEffect(() => {
+        if (!times) return;
+        const update = () => {
+            const now = new Date();
+            const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+            let next = null;
+            let minDiff = Infinity;
+
+            prayers.forEach(p => {
+                const t = times[p];
+                if (t && t > now) {
+                    const diff = t - now;
+                    if (diff < minDiff) { minDiff = diff; next = p; }
+                }
+            });
+
+            setNextPrayer(next);
+            setCountdown(next ? minDiff : null);
         };
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const newLocation = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                };
-                setLocation(newLocation);
-                localStorage.setItem('lastKnownLocation', JSON.stringify(newLocation));
-                setError(null); 
-            },
-            (err) => {
-                // If high accuracy failed or timeout, try again with low accuracy (if we were using high)
-                // But here we default to low accuracy for stability.
-                
-                if (!savedLocation) {
-                    let errorMessage = 'Unable to retrieve your location.';
-                    if (err.code === 1) errorMessage = 'Location permission denied. Please enable it in settings.';
-                    if (err.code === 2) errorMessage = 'Location unavailable.';
-                    if (err.code === 3) errorMessage = 'Location request timed out.';
-                    setError(errorMessage);
-                }
-                console.error(err);
-            },
-            options
-        );
-    }, []);
+        update();
+        const interval = setInterval(update, 1000);
+        return () => clearInterval(interval);
+    }, [times]);
 
-    useEffect(() => {
-        if (location) {
-            try {
-                const date = new Date();
-                const coordinates = new Coordinates(location.latitude, location.longitude);
-                // Muslim World League is a reputable source
-                const params = CalculationMethod.MuslimWorldLeague();
-                const times = new PrayerTimes(coordinates, date, params);
-
-                setPrayerTimes(times);
-
-                const next = times.nextPrayer();
-                const current = times.currentPrayer();
-
-                setNextPrayer({
-                    current: current,
-                    next: next,
-                    nextTime: times.timeForPrayer(next)
-                });
-            } catch (e) {
-                console.error("Error calculating prayer times:", e);
-                setError("Error calculating times for this location.");
-            }
-        }
-    }, [location]);
-
-    return { prayerTimes, nextPrayer, location, error };
-};
+    return { times, nextPrayer, countdown, location, loading, error, refresh, isManual, setManualLocation, clearManualLocation };
+}
