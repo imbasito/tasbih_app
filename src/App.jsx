@@ -83,28 +83,6 @@ const AppInner = () => {
             {!focusLocked && (
                 <BottomNav currentView={currentView} onViewChange={setCurrentView} />
             )}
-
-            {focusLocked && (
-                <button
-                    onClick={() => setFocusLocked(false)}
-                    aria-label="Exit focus lock"
-                    style={{
-                        position: 'fixed', bottom: '24px', right: '24px',
-                        width: '48px', height: '48px',
-                        borderRadius: '50%',
-                        background: 'var(--bg-glass-strong)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid var(--bg-glass-border)',
-                        cursor: 'pointer', color: 'var(--text-secondary)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-                        zIndex: 1000,
-                    }}
-                >
-                    🔓
-                </button>
-            )}
         </Layout>
     );
 };

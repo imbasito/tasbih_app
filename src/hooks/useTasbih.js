@@ -7,6 +7,7 @@ const hapticsAvailable = Capacitor.isNativePlatform();
 export function useTasbih(dhikrId, initialCount = 0, targetCount = 33, onComplete, recordCount) {
     const storageKey = `tasbih_count_${dhikrId}`;
 
+    // Initialize directly from localStorage — no animation from 0 to stored value
     const [count, setCount] = useState(() => {
         const saved = localStorage.getItem(storageKey);
         return saved ? parseInt(saved, 10) : initialCount;
@@ -14,14 +15,16 @@ export function useTasbih(dhikrId, initialCount = 0, targetCount = 33, onComplet
 
     const completedRef = useRef(false);
 
+    // When dhikr changes, load saved count instantly (no transition animation)
     useEffect(() => {
-        setCount(() => {
-            const saved = localStorage.getItem(storageKey);
-            return saved ? parseInt(saved, 10) : initialCount;
-        });
-        completedRef.current = false;
-    }, [dhikrId]);
+        const saved = localStorage.getItem(storageKey);
+        const restored = saved ? parseInt(saved, 10) : initialCount;
+        setCount(restored);
+        // If already complete, mark it so we don't re-fire completion
+        completedRef.current = restored >= targetCount;
+    }, [dhikrId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Persist and check completion whenever count changes
     useEffect(() => {
         localStorage.setItem(storageKey, String(count));
 
@@ -31,18 +34,16 @@ export function useTasbih(dhikrId, initialCount = 0, targetCount = 33, onComplet
                 onComplete && onComplete();
             }, 200);
         }
-    }, [count, targetCount, storageKey]);
+    }, [count, targetCount, storageKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const increment = useCallback(() => {
         if (completedRef.current) return;
 
         setCount(prev => {
             const next = prev + 1;
-            // Haptic feedback
             if (hapticsAvailable) {
                 Haptics.impact({ style: ImpactStyle.Light }).catch(() => { });
             }
-            // Record for stats
             recordCount && recordCount(1);
             return next;
         });

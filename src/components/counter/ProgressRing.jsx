@@ -2,10 +2,10 @@ import React from 'react';
 
 const ProgressRing = ({ count, target, progress, breathingScale, breathingMode, showAameen, onTap }) => {
     // Dynamic sizing: fills available space, capped at 320px
-    const SIZE = 'min(72vw, 320px)';
+    const SIZE = 'min(80vw, 360px)';
     const RADIUS_RATIO = 0.44; // radius as fraction of size
 
-    const strokeDash = `calc(2 * 3.14159 * ${RADIUS_RATIO} * ${SIZE === 'min(72vw, 320px)' ? 'min(72vw, 320px)' : SIZE})`;
+    const strokeDash = `calc(2 * 3.14159 * ${RADIUS_RATIO} * min(80vw, 360px))`;
 
     // We use a fixed SVG viewBox and let CSS scale it
     const svgR = 126; // 126 + 4 (half stroke) = 130 (matches viewbox radius)
@@ -27,8 +27,8 @@ const ProgressRing = ({ count, target, progress, breathingScale, breathingMode, 
                 aria-disabled={showAameen}
                 style={{
                     position: 'relative',
-                    width: 'min(72vw, 320px)',
-                    height: 'min(72vw, 320px)',
+                    width: 'min(80vw, 360px)',
+                    height: 'min(80vw, 360px)',
                     cursor: showAameen ? 'default' : 'pointer',
                     userSelect: 'none',
                     transform: `scale(${breathingScale})`,

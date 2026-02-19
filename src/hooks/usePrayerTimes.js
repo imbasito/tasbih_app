@@ -27,7 +27,8 @@ export function usePrayerTimes() {
     const calculateTimes = useCallback(async (lat, lng, cityOverride) => {
         try {
             const coords = new Coordinates(lat, lng);
-            const params = CalculationMethod.MuslimWorldLeague();
+            // Karachi (University of Islamic Sciences) — most accurate for Pakistan
+            const params = CalculationMethod.Karachi();
             params.madhab = Madhab.Hanafi;
 
             const date = new Date();

@@ -56,13 +56,15 @@ export function AdhkarProvider({ children }) {
         }
     }, [activeDhikr, adhkarData]);
 
+    // Advance to next dhikr in SAME category (called by Next button)
     const handleNextDhikr = useCallback(() => {
         if (!activeDhikr) return;
-        const cats = Object.keys(adhkarData);
-        const catIdx = cats.indexOf(activeDhikr.category);
-        const nextCat = cats[(catIdx + 1) % cats.length];
-        const items = adhkarData[nextCat] || [];
-        if (items.length > 0) setActiveDhikr({ ...items[0], category: nextCat });
+        const cat = activeDhikr.category;
+        const items = adhkarData[cat] || [];
+        const idx = items.findIndex(d => d.id === activeDhikr.id);
+        if (idx >= 0 && idx < items.length - 1) {
+            setActiveDhikr({ ...items[idx + 1], category: cat });
+        }
         setShowAameen(false);
     }, [activeDhikr, adhkarData]);
 

@@ -1,8 +1,8 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { CATEGORY_META } from '../../data/adhkar';
 
-const AameenOverlay = ({ category, particles, onReset, onNext }) => (
+const AameenOverlay = ({ category, particles, onReset, onDone }) => (
     <div
         role="dialog"
         aria-modal="true"
@@ -64,17 +64,17 @@ const AameenOverlay = ({ category, particles, onReset, onNext }) => (
                 ↺ Restart
             </button>
             <button
-                onClick={onNext}
+                onClick={onDone}
                 style={{
                     display: 'flex', alignItems: 'center', gap: '8px',
-                    padding: '14px 24px',
+                    padding: '14px 28px',
                     background: 'var(--accent-primary)', border: 'none', borderRadius: '16px',
                     color: '#fff', fontSize: '15px', fontWeight: '700',
                     cursor: 'pointer', fontFamily: 'inherit',
                     boxShadow: '0 8px 24px rgba(45,106,79,0.4)',
                 }}
             >
-                Next Dhikr <ChevronRight size={18} />
+                <Check size={18} /> Done
             </button>
         </div>
     </div>
